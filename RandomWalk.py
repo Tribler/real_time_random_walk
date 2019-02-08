@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 # import matplotlib.lines as mtline
-from matplotlib.animation import FuncAnimation, writers
+from matplotlib.animation import FuncAnimation
 import networkx as nx
 import math
 import random
@@ -9,7 +9,7 @@ import random
 
 class RandomWalk(object):
 
-    def __init__(self, sample_graph, savevid=False):
+    def __init__(self, sample_graph):
         self.gr = sample_graph.graph
         self.local_vision = sample_graph
         self.n_nodes = sample_graph.n_nodes
@@ -33,7 +33,6 @@ class RandomWalk(object):
         self.lines = []
         self.scat = None
         self.walk_params = self.default_walk_params()
-        self.savevid = savevid
         self.edge_indices = {}
 
     def default_walk_params(self):
@@ -52,7 +51,7 @@ class RandomWalk(object):
         if 'reset_prob' in params:
             self.walk_params['reset_prob'] = params['reset_prob']
 
-    def show_walk(self):
+    def show_walk(self, savevid=False):
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_axes([0, 0, 1, 1], frameon=False)
         ax.set_xlim(0, 1), ax.set_xticks([])
@@ -99,8 +98,8 @@ class RandomWalk(object):
         self.animation = FuncAnimation(fig, self.update,
                                        interval=10, init_func=self.init)
 
-        if self.savevid:
-            # self.animation.save('line.gif', dpi=60, writer='imagemagick')
+        if savevid:
+            # self.animation.save('anim.gif', dpi=60, writer='imagemagick')
             self.animation.save('anim.mp4')
         else:
             plt.show()
@@ -230,6 +229,8 @@ class NodeVision(object):
     """
     This object is used for laying out the nodes of a graph according to \
     the local vision of a specific node (root node)
+
+    TODO: Put create_directed_graph out of the class. Receive graph as an input.
     """
 
     def __init__(self, n_nodes, rootnode=0):
@@ -349,12 +350,3 @@ class GraphPositioning(object):
             return pos
 
         return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
-
-
-Gw = NodeVision(400)
-Gw.show_undirected_bfs_tree()
-Gw.show_directed_neighborhood()
-
-rw = RandomWalk(Gw)
-rw.set_walk_params({'n_walk': 300})
-rw.show_walk()
