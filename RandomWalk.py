@@ -65,6 +65,7 @@ class RandomWalk(object):
         # Draw edges
         x1s, x2s, y1s, y2s, lws = [], [], [], [], []
 
+        print('Setting edge positions')
         for edge in self.gr.edges:
             x1s.append(self.nodes['position'][edge[0], 0])
             y1s.append(self.nodes['position'][edge[0], 1])
@@ -72,9 +73,11 @@ class RandomWalk(object):
             y2s.append(self.nodes['position'][edge[1], 1])
             lws.append(self.gr[edge[0]][edge[1]]['weight'])
 
+        print('Drawing edges')
         self.lines = ax.plot([x1s, x2s], [y1s, y2s], color='gray',
                              alpha=0.4, linestyle='--', lw=0.5)
 
+        print('Setting edge attributes')
         for i in range(len(self.lines)):
             self.lines[i].set_xdata([x1s[i], x2s[i]])
             self.lines[i].set_ydata([y1s[i], y2s[i]])
@@ -82,6 +85,7 @@ class RandomWalk(object):
             self.lines[i].set_ls('dashed')
 
         # Draw nodes
+        print('Drawing nodes')
         self.scat = ax.scatter(self.nodes['position'][:, 0],
                                self.nodes['position'][:, 1],
                                s=self.nodes['size'], lw=0.5,
@@ -105,10 +109,10 @@ class RandomWalk(object):
             plt.show()
 
     def make_step(self, nodeid, visiteds):
-        # print(nodeid)
         self.n_step -= 1
         if ((self.gr.out_degree(nodeid) == 0) or (np.random.uniform(0, 1) <
                                                   self.reset_prob)):
+
             return self.local_vision.rootnode, []
 
         total_weight = 0
@@ -169,8 +173,10 @@ class RandomWalk(object):
             self.animation.event_source.stop()
             return
 
+        print('Step started')
         self.next_node, self.visiteds = self.make_step(self.current_node,
                                                        self.visiteds)
+        print('Step finished')
 
         if self.next_node == 0:
             self.n_walk -= 1
@@ -179,6 +185,7 @@ class RandomWalk(object):
         self.nodes['facecolor'][self.current_node] = (0, 1, 0, 1)
         self.nodes['facecolor'][self.local_vision.rootnode] = (0, 1, 1, 1)
         self.nodes['size'][self.current_node] += self.growthrate
+        self.nodes['size'] -= (self.growthrate / 40)
 
         # self.scat.set_edgecolors(self.nodes['color'])
         self.scat.set_facecolors(self.nodes['facecolor'])
@@ -189,22 +196,26 @@ class RandomWalk(object):
 
         if len(self.visiteds) == 0:
             # Reset colors
-
+            print('Starting new walk')
             lws, lcs, lss = [], [], []
             for edge in self.gr.edges:
                 lcs.append('gray')
                 lws.append(self.gr[edge[0]][edge[1]]['weight'])
                 lss.append('--')
 
+            print('Setting new lines'),
             for i in range(len(self.lines)):
                 self.lines[i].set_lw(lws[i]/80)
                 self.lines[i].set_color(lcs[i])
                 self.lines[i].set_ls(lss[i])
+            print('... Finished')
         else:
+            print('Arranging new edge'),
             ind = self.edge_indices[(self.current_node, self.next_node)]
             self.lines[ind].set_color('b')
             self.lines[ind].set_lw(4)
             self.lines[ind].set_ls('--')
+            print('... Finished')
 
         self.current_node = self.next_node
 
@@ -234,9 +245,13 @@ class NodeVision(object):
           Receive graph as an input.
     """
 
-    def __init__(self, n_nodes, rootnode=0):
-        self.n_nodes = n_nodes
-        self.graph = self.create_directed_graph(n_nodes)
+    def __init__(self, gr=None, n_nodes=0, rootnode=0):
+        if gr is None:
+            self._n_nodes = n_nodes
+            self.graph = self.create_directed_graph(n_nodes)
+        else:
+            self.graph = gr
+            self._n_nodes = gr.number_of_nodes()
         self.rootnode = rootnode
         self.bfstree = {}
         self.pos = self.lay_down_nodes()
@@ -244,6 +259,11 @@ class NodeVision(object):
     def set_root_node(self, rootnode):
         self.rootnode = rootnode
         self.pos = self.lay_down_nodes()
+
+    @property
+    def n_nodes(self):
+        """I'm the 'x' property."""
+        return self.graph.number_of_nodes()
 
     def create_directed_graph(self, n_nodes, min_w=10, max_w=100):
         G = nx.random_k_out_graph(n_nodes, 3, 0.9)
@@ -253,8 +273,24 @@ class NodeVision(object):
                         weight=np.random.uniform(min_w, max_w))
         return Gw
 
+    def reposition_nodes(self):
+        self.pos = self.lay_down_nodes()
+
+    def add_edge_to_vision(self, n1, n2, w):
+        if n1 in self.graph and n2 in self.graph.successors(n1):
+            self.graph[n1][n2]['weight'] += w
+            print('Existing edge !!!')
+        else:
+            print('Non-Existing edge !!!')
+            self.graph.add_edge(n1, n2, weight=w)
+
     def lay_down_nodes(self):
         H = self.graph.to_undirected()
+        component_nodes = nx.node_connected_component(H, self.rootnode)
+        for node in list(H.nodes()):
+            if node not in component_nodes:
+                H.remove_node(node)
+
         bfstree = nx.bfs_tree(H, self.rootnode)
         self.bfstree[self.rootnode] = bfstree
         # bfs = list(nx.bfs_tree(H, rootnode).edges())

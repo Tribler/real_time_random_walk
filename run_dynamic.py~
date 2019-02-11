@@ -1,6 +1,6 @@
 from RandomWalk import NodeVision, RandomWalk
 
-Gw = NodeVision(n_nodes=400)
+Gw = NodeVision(400)
 Gw.show_undirected_bfs_tree()
 Gw.show_directed_neighborhood()
 
