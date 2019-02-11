@@ -230,7 +230,8 @@ class NodeVision(object):
     This object is used for laying out the nodes of a graph according to \
     the local vision of a specific node (root node)
 
-    TODO: Put create_directed_graph out of the class. Receive graph as an input.
+    TODO: Put create_directed_graph out of the class.
+          Receive graph as an input.
     """
 
     def __init__(self, n_nodes, rootnode=0):
