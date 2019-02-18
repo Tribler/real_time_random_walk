@@ -45,7 +45,3 @@ class FakeGraph(object):
                                      'downloader': node1,
                                      'amount': 50 + random() * 50})
         return transactions
-
-
-fg = FakeGraph(100)
-print(fg.generate_transactions(5))

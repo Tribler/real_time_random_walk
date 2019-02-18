@@ -1,4 +1,5 @@
-from RandomWalk import NodeVision, RandomWalk
+from RandomWalk import RandomWalk
+from NodeVision import NodeVision
 import FakeNetwork as fk
 from networkx import nx
 
@@ -37,29 +38,26 @@ rw.set_move_params({'time_to_finish': 10})
 rw.show_walk()
 
 
-def step(rw):
-    # Gw.diminish_weights()
-    trs = fg.generate_transactions(500)
-    Gw.add_transactions(trs)
-    trs = fg.generate_local_transactions(Gw.rootnode, 5, 0.8, True)
-    Gw.add_transactions(trs)
+# def step(rw):
+#     # Gw.diminish_weights()
+#     trs = fg.generate_transactions(500)
+#     Gw.add_transactions(trs)
+#     trs = fg.generate_local_transactions(Gw.rootnode, 5, 0.8, True)
+#     Gw.add_transactions(trs)
 
-    Gw.normalize_edge_weights()
+#     Gw.normalize_edge_weights()
+#     Gw.reposition_nodes()
+#     Gw.update_component()
 
-    Gw.reposition_nodes()
-    # Gw.show_undirected_bfs_tree()
-    Gw.update_component()
-    # Gw.show_directed_neighborhood()
+#     rw.update_local_vision(Gw, animate=True)
 
-    rw.update_local_vision(Gw, animate=True)
+#     rw.show_walk()
 
-    rw.show_walk()
-
-    rw.remove_old_nodes(0.9)
+#     rw.remove_old_nodes(0.9)
 
 
-for i in range(10):
-    step(rw)
+# for i in range(1):
+#     step(rw)
 
 # Gw = NodeVision(n_nodes=400)
 # Gw.show_undirected_bfs_tree()
