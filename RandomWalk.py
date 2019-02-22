@@ -9,7 +9,7 @@ from TransactionDiscovery import TransactionDiscovery
 
 class RandomWalk(object):
 
-    def __init__(self, sample_graph):
+    def __init__(self, sample_graph, fake=False):
         self.local_vision = sample_graph
 
         self.attr = {}
@@ -32,7 +32,9 @@ class RandomWalk(object):
         self.edge_indices = {}
         self.oldpos = None
         self.fig = None
-        self.discoverer = TransactionDiscovery(True)
+        self.isfake = fake
+        self.discoverer = TransactionDiscovery(self.isfake)
+        self.make_fake_transactions = False
 
     @property
     def gr(self):
@@ -58,8 +60,10 @@ class RandomWalk(object):
             # self.remove_old_nodes(0.5)
 
             # Discover new transactions
-            trs = self.discoverer.read_transactions(True)
+            trs = self.discoverer.read_transactions(self.isfake, 100)
             self.local_vision.add_transactions(trs)
+            if self.make_fake_transactions:
+                self.local_vision.make_random_transactions(5)
             self.local_vision.normalize_edge_weights()
             self.local_vision.reposition_nodes()
             self.local_vision.update_component()
@@ -105,6 +109,8 @@ class RandomWalk(object):
     def move_anim_init(self):
         print('Executing move_anim_init')
         self.ax.cla()
+        self.ax.set_xlim(0, 1), self.ax.set_xticks([])
+        self.ax.set_ylim(0, 1), self.ax.set_yticks([])
         frame_number = 0
         self.frame_number = 0
         actual_pos = {}
@@ -275,11 +281,12 @@ class RandomWalk(object):
 
     def prepare_canvas(self):
         self.fig = plt.figure(figsize=(10, 10))
-        self.ax = self.fig.add_axes([0.05, 0.05, 0.9, 0.9], frameon=False)
+        self.ax = self.fig.add_axes([0.025, 0.1, 1, 1], frameon=False)
         self.ax.set_xlim(0, 1), self.ax.set_xticks([])
         self.ax.set_ylim(0, 1), self.ax.set_yticks([])
-        self.ax2 = self.fig.add_axes([0.6, 0.05, 0.09, 0.05])
-        self.ax3 = self.fig.add_axes([0.72, 0.05, 0.09, 0.05])
+        # self.ax2 = self.fig.add_axes([0.6, 0.05, 0.09, 0.05])
+        # self.ax3 = self.fig.add_axes([0.72, 0.05, 0.09, 0.05])
+        
         # bprev = Button(self.ax2, 'Interrupt Walk')
         # tprev = Button(self.ax3, 'T')
         # bprev.on_clicked(self.test)
@@ -287,9 +294,9 @@ class RandomWalk(object):
 
     def show_walk(self, savevid=False):
         self.prepare_canvas()
-        bprev = Button(self.ax2, 'Interrupt Walk')
+        # bprev = Button(self.ax2, 'Interrupt Walk')
+        # bprev.on_clicked(self.test)
         # tprev = Button(self.ax3, 'T')
-        bprev.on_clicked(self.test)
         # tprev.on_clicked(self.test)
 
         self.normal_pos = self.normalize_positions_dict()
@@ -339,12 +346,12 @@ class RandomWalk(object):
         self.edge_indices = {}
 
         self.animation = FuncAnimation(self.fig, self.walk_anim_update,
-                                       interval=10,
+                                       interval=100,
                                        init_func=self.walk_anim_init)
 
         if savevid:
-            # self.animation.save('anim.gif', dpi=60, writer='imagemagick')
-            self.animation.save('anim.mp4')
+            self.animation.save('anim.gif', dpi=60, writer='imagemagick')
+            # self.animation.save('anim.mp4')
         else:
             plt.show()
 
@@ -481,5 +488,3 @@ class RandomWalk(object):
                 newposlist[node] = (nposx, nposy)
 
         return newposlist
-
-

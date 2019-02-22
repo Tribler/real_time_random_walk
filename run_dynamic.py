@@ -31,11 +31,11 @@ Gw.show_undirected_bfs_tree()
 Gw.update_component()
 Gw.show_directed_neighborhood()
 
-rw = RandomWalk(Gw)
-rw.set_walk_params({'n_walk': 50, 'reset_prob': 0.1, 'n_step': 300})
+rw = RandomWalk(Gw, fake=True)
+rw.set_walk_params({'n_walk': 10, 'reset_prob': 0.1, 'n_step': 300})
 rw.set_move_params({'time_to_finish': 10})
 
-rw.show_walk()
+rw.show_walk(True)
 
 
 # def step(rw):

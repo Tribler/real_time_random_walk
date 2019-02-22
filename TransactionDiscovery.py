@@ -1,6 +1,9 @@
 import FakeNetwork as fk
 import networkx as nx
 from NodeVision import NodeVision
+import urllib
+import json
+from random import random 
 
 
 class TransactionDiscovery(object):
@@ -30,3 +33,21 @@ class TransactionDiscovery(object):
             loc_trs = self.fg.generate_local_transactions(self.Gw.rootnode, 5)
             self.Gw.add_transactions(loc_trs)
             return glob_trs + loc_trs
+        else:
+            url = "http://localhost:8085/trustchain/recent?limit={}".format(tr_count * 100)
+            response = urllib.urlopen(url)
+            data = json.loads(response.read())['blocks']
+
+            transactions = []
+            for d in data:
+                if random() > 0.01:
+                    continue
+                if int(d['transaction']['down']) > 0:
+                    transactions.append({'downloader': d['public_key'],
+                                         'uploader': d['link_public_key'],
+                                         'amount': int(d['transaction']['down']) / 200000000.0})
+                if int(d['transaction']['up']) > 0:
+                    transactions.append({'downloader': d['link_public_key'],
+                                         'uploader': d['public_key'],
+                                         'amount': int(d['transaction']['up']) / 200000000.0})
+            return transactions

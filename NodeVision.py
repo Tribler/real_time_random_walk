@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import math
 from GraphPositioning import GraphPositioning as gpos
+from random import choice, random
 
 
 class NodeVision(object):
@@ -54,6 +55,22 @@ class NodeVision(object):
             #                  tr['uploader'], weight=tr['amount'])
             self.add_edge_to_vision(tr['downloader'],
                                     tr['uploader'], tr['amount'])
+
+    def make_random_transactions(self, tr_count):
+        trs = []
+        for i in range(tr_count):
+            neigh = choice(list(self.graph.nodes().keys()))
+            if neigh == self.rootnode:
+                continue
+            if random() > 0.5:
+                trs.append({'downloader': self.rootnode,
+                            'uploader': neigh,
+                            'amount': random() * 100})
+            else:
+                trs.append({'downloader': neigh,
+                            'uploader': self.rootnode,
+                            'amount': random() * 100})
+        self.add_transactions(trs)
 
     def add_edge_to_vision(self, n1, n2, w):
         if n1 in self.graph and n2 in self.graph.successors(n1):
