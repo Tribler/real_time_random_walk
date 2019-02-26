@@ -1,42 +1,51 @@
-from RandomWalk import RandomWalk
-from NodeVision import NodeVision
-from networkx import nx
-from TransactionDiscovery import TransactionDiscovery
 from random import random
 
-gr = nx.DiGraph()
-gr.add_node(0)
-Gw = NodeVision(gr=gr)
+from NodeVision import NodeVision
+from RandomWalk import RandomWalk
+from TransactionDiscovery import CrawlerTransactionDiscovery, SQLiteTransactionDiscovery
 
-disc = TransactionDiscovery()
-transactions = disc.read_transactions(fake=False, tr_count=500)
+DB_NAME = ""
 
-for tr in transactions:
-    Gw.graph.add_edge(tr['downloader'],
-                      tr['uploader'],
-                      weight=tr['amount'])
-    if random() < 0.25 and tr['downloader'] != Gw.rootnode:
-        Gw.graph.add_edge(Gw.rootnode, tr['downloader'], weight=tr['amount'])
-        # Gw.graph.add_edge(tr['downloader'], Gw.rootnode, weight=tr['amount'])
 
-Gw.set_root_node(transactions[0]['downloader'])
-# Initialization
+def run_on_real_crawler(local_db=False):
+    # Use default crawler transaction discovery
+    if local_db:
+        disc = SQLiteTransactionDiscovery(DB_NAME)
+    else:
+        disc = CrawlerTransactionDiscovery()
 
-Gw.normalize_edge_weights()
+    transactions = disc.read_transactions(tr_count=100)
 
-Gw.reposition_nodes()
-Gw.show_undirected_bfs_tree()
-Gw.update_component()
-Gw.show_directed_neighborhood()
+    # Add crawled transactions to the graph
+    gw = NodeVision()
+    for tr in transactions:
+        gw.graph.add_edge(tr['downloader'],
+                          tr['uploader'],
+                          weight=tr['amount'])
+        if random() < 0.25 and tr['downloader'] != gw.root_node:
+            gw.graph.add_edge(gw.root_node, tr['downloader'], weight=tr['amount'])
 
-rw = RandomWalk(Gw)
-rw.set_walk_params({'n_walk': 50, 'reset_prob': 0.1, 'n_step': 300})
-rw.set_move_params({'time_to_finish': 10})
+    gw.set_root_node(transactions[0]['downloader'])
+    # Initialization
 
-rw.make_fake_transactions = True
+    gw.normalize_edge_weights()
 
-rw.show_walk()
+    gw.reposition_nodes()
+    gw.show_undirected_bfs_tree()
+    gw.update_component()
+    gw.show_directed_neighborhood()
 
+    rw = RandomWalk(gw, disc)
+    rw.set_walk_params({'n_walk': 50, 'reset_prob': 0.1, 'n_step': 300})
+    rw.set_move_params({'time_to_finish': 10})
+
+    rw.make_fake_transactions = True
+
+    rw.show_walk()
+
+
+if __name__ == '__main__':
+    run_on_real_crawler()
 
 # def step(rw):
 #     # Gw.diminish_weights()

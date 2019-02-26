@@ -1,42 +1,36 @@
-from RandomWalk import RandomWalk
+from FakeNetwork import GraphTransactionGenerator
 from NodeVision import NodeVision
-import FakeNetwork as fk
-from networkx import nx
-
-nodecount = 300
-fg = fk.FakeGraph(nodecount)
-
-gr = nx.DiGraph()
-gr.add_node(0)
-Gw = NodeVision(gr=gr)
-
-for i in range(1, nodecount, 30):
-    Gw.graph.add_edge(0, i, weight=1.0)
-
-for i in range(12, nodecount, 100):
-    Gw.graph.add_edge(i, 0, weight=1.0)
+from RandomWalk import RandomWalk
+from TransactionDiscovery import GeneratedTransactionDiscovery
 
 
-# Initialization
+def run_on_generated_data():
+    # Transaction generator
+    nodecount = 300
+    fg = GraphTransactionGenerator(nodecount)
 
-trs = fg.generate_transactions(500)
-Gw.add_transactions(trs)
-trs = fg.generate_local_transactions(Gw.rootnode, 5)
-Gw.add_transactions(trs)
+    # Init graph with root 0
+    Gw = NodeVision()
+    Gw.add_transactions(fg.generate_transactions(500))
+    Gw.add_transactions(fg.generate_local_transactions(Gw.root_node, 5))
+    Gw.normalize_edge_weights()
+    Gw.reposition_nodes()
+    Gw.show_undirected_bfs_tree()
+    Gw.update_component()
+    Gw.show_directed_neighborhood()
 
-Gw.normalize_edge_weights()
+    # Use default fake transaction discovery
+    discoverer = GeneratedTransactionDiscovery()
 
-Gw.reposition_nodes()
-Gw.show_undirected_bfs_tree()
-Gw.update_component()
-Gw.show_directed_neighborhood()
+    rw = RandomWalk(Gw, discoverer)
+    rw.set_walk_params({'n_walk': 10, 'reset_prob': 0.1, 'n_step': 300})
+    rw.set_move_params({'time_to_finish': 10})
 
-rw = RandomWalk(Gw, fake=True)
-rw.set_walk_params({'n_walk': 10, 'reset_prob': 0.1, 'n_step': 300})
-rw.set_move_params({'time_to_finish': 10})
+    rw.show_walk()
 
-rw.show_walk()
 
+if __name__ == '__main__':
+    run_on_generated_data()
 
 # def step(rw):
 #     # Gw.diminish_weights()

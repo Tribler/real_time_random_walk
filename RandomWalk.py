@@ -1,8 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib.widgets import Button
 import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.animation import FuncAnimation
 
 from TransactionDiscovery import TransactionDiscovery
 
@@ -18,18 +18,17 @@ par_init_size = 100
 
 class RandomWalk(object):
 
-    def __init__(self, sample_graph, fake=False):
+    def __init__(self, sample_graph, discoverer):
+        """
+        :param discoverer: TransactionDiscorvery
+        """
         self.local_vision = sample_graph
 
-        self.attr = {}
-        self.attr['size'] = {}
-        self.attr['rank'] = {}
-        self.attr['color'] = {}
-
-        self.attr['size'] = {nodeid: par_init_size
-                             for nodeid in self.gr.nodes()}
-        self.attr['color'] = {nodeid: anim_colors['init_color']
-                              for nodeid in self.gr.nodes()}
+        self.attr = {'size': {nodeid: par_init_size
+                              for nodeid in self.gr.nodes()},
+                     'rank': {},
+                     'color': {nodeid: anim_colors['init_color']
+                               for nodeid in self.gr.nodes()}}
 
         self.pos = sample_graph.node_positions
         self.normal_pos = self.normalize_positions_dict()
@@ -42,8 +41,7 @@ class RandomWalk(object):
         self.edge_indices = {}
         self.oldpos = None
         self.fig = None
-        self.isfake = fake
-        self.discoverer = TransactionDiscovery(self.isfake)
+        self.discoverer = discoverer
         self.make_fake_transactions = False
 
     @property
@@ -70,7 +68,7 @@ class RandomWalk(object):
             self.remove_old_nodes(par_remove_prob)
 
             # Discover new transactions
-            trs = self.discoverer.read_transactions(self.isfake, 100)
+            trs = self.discoverer.read_transactions(100)
             self.local_vision.add_transactions(trs)
             if self.make_fake_transactions:
                 self.local_vision.make_random_transactions(5)

@@ -9,25 +9,26 @@ class NodeVision(object):
     """
     This object is used for laying out the nodes of a graph according to \
     the local vision of a specific node (root node)
-
-    TODO: Put create_directed_graph out of the class.
-          Receive graph as an input.
     """
 
-    def __init__(self, gr=None, n_nodes=0, rootnode=0):
-        if gr is None:
-            self._n_nodes = n_nodes
-            self.graph = self.create_directed_graph(n_nodes)
+    def __init__(self, graph=None, root_node=0):
+        """
+        :param graph: Peer network
+        :param root_node: Node id in the network, by default 0
+        """
+        if graph is None:
+            self.graph = nx.DiGraph()
+            self.graph.add_node(root_node)
         else:
-            self.graph = gr
-            self._n_nodes = gr.number_of_nodes()
-        self.rootnode = rootnode
-        self.bfstree = {}
+            self.graph = graph
+
+        self.root_node = root_node
+        self.bfs_tree = {}
         self.pos = self.lay_down_nodes()
         self.component = None
 
     def set_root_node(self, rootnode):
-        self.rootnode = rootnode
+        self.root_node = rootnode
         self.pos = self.lay_down_nodes()
 
     @property
@@ -37,14 +38,6 @@ class NodeVision(object):
     @property
     def node_positions(self):
         return dict(self.graph.nodes(data='pos'))
-
-    def create_directed_graph(self, n_nodes, min_w=10, max_w=100):
-        G = nx.random_k_out_graph(n_nodes, 3, 0.9)
-        Gw = nx.DiGraph()
-        for edge in G.edges():
-            Gw.add_edge(edge[0], edge[1],
-                        weight=np.random.uniform(min_w, max_w))
-        return Gw
 
     def reposition_nodes(self):
         self.pos = self.lay_down_nodes()
@@ -60,15 +53,15 @@ class NodeVision(object):
         trs = []
         for i in range(tr_count):
             neigh = choice(list(self.graph.nodes().keys()))
-            if neigh == self.rootnode:
+            if neigh == self.root_node:
                 continue
             if random() > 0.5:
-                trs.append({'downloader': self.rootnode,
+                trs.append({'downloader': self.root_node,
                             'uploader': neigh,
                             'amount': random() * 100})
             else:
                 trs.append({'downloader': neigh,
-                            'uploader': self.rootnode,
+                            'uploader': self.root_node,
                             'amount': random() * 100})
         self.add_transactions(trs)
 
@@ -107,32 +100,28 @@ class NodeVision(object):
             w = self.graph[n1][n2]['weight']
             self.graph[n1][n2]['weight'] = minwidth + (width_diff
                                                        * ((w - minw)
-                                                           / weight_diff))
+                                                          / weight_diff))
 
     def lay_down_nodes(self):
         H = self.graph.to_undirected()
-
         # Remove disconnected nodes from the graph
-        component_nodes = nx.node_connected_component(H, self.rootnode)
+        component_nodes = nx.node_connected_component(H, self.root_node)
         for node in list(H.nodes()):
             if node not in component_nodes:
                 H.remove_node(node)
-
-        bfstree = nx.bfs_tree(H, self.rootnode)
-        self.bfstree[self.rootnode] = bfstree
-        # bfs = list(nx.bfs_tree(H, rootnode).edges())
-        pos = gpos.hierarchy_pos(bfstree, self.rootnode,
-                                             width=2*math.pi, xcenter=0)
-        new_pos = {u: (r*math.cos(theta), r*math.sin(theta))
+        bfs_tree = nx.bfs_tree(H, self.root_node)
+        self.bfs_tree[self.root_node] = bfs_tree
+        pos = gpos.hierarchy_pos(bfs_tree, self.root_node,
+                                 width=2 * math.pi, xcenter=0)
+        new_pos = {u: (r * math.cos(theta), r * math.sin(theta))
                    for u, (theta, r) in pos.items()}
-        # for u, (x, y) in new_pos.items():
-        #     self.graph[u]['pos'] = (x, y)
+
         nx.set_node_attributes(self.graph, new_pos, 'pos')
         return new_pos
 
     def show_undirected_bfs_tree(self):
-        # nx.draw(self.bfstree[self.rootnode], pos=self.pos, node_size=50)
-        nx.draw(self.bfstree[self.rootnode],
+
+        nx.draw(self.bfs_tree[self.root_node],
                 pos=self.node_positions,
                 node_size=50)
         plt.show()
@@ -141,7 +130,7 @@ class NodeVision(object):
         H = self.graph.to_undirected()
         self.component = nx.DiGraph(self.graph)
 
-        component_nodes = nx.node_connected_component(H, self.rootnode)
+        component_nodes = nx.node_connected_component(H, self.root_node)
         for node in self.graph:
             if node not in component_nodes:
                 self.component.remove_node(node)
@@ -157,7 +146,7 @@ class NodeVision(object):
         nx.draw_networkx_nodes(self.component, pos=self.node_positions,
                                node_size=50)
         nx.draw_networkx_nodes(self.component, pos=self.node_positions,
-                               nodelist=[self.rootnode],
+                               nodelist=[self.root_node],
                                node_color='blue', node_size=100)
         nx.draw_networkx_edges(self.component, pos=self.node_positions,
                                edge_color='gray', alpha=0.5, style='dashed')
