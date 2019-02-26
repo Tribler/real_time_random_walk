@@ -6,6 +6,15 @@ import random
 
 from TransactionDiscovery import TransactionDiscovery
 
+anim_colors = {'init_color': (0, 0, 1, 0.3),
+               'visited_color:': (0, 1, 0, 0.3),
+               'explored_color': (1, 0, 1, 0.3),
+               'forgotten_color': (0.3, 0.3, 0.3, 0.5)}
+
+par_remove_size = 30
+par_remove_prob = 0.5
+par_init_size = 100
+
 
 class RandomWalk(object):
 
@@ -17,8 +26,9 @@ class RandomWalk(object):
         self.attr['rank'] = {}
         self.attr['color'] = {}
 
-        self.attr['size'] = {nodeid: 100 for nodeid in self.gr.nodes()}
-        self.attr['color'] = {nodeid: (1, 0, 0, 0.3)
+        self.attr['size'] = {nodeid: par_init_size
+                             for nodeid in self.gr.nodes()}
+        self.attr['color'] = {nodeid: anim_colors['init_color']
                               for nodeid in self.gr.nodes()}
 
         self.pos = sample_graph.node_positions
@@ -57,7 +67,7 @@ class RandomWalk(object):
     def animation_controller(self, status):
         if status == 'walkfinished':
             # Remove old nodes with some probability
-            # self.remove_old_nodes(0.5)
+            self.remove_old_nodes(par_remove_prob)
 
             # Discover new transactions
             trs = self.discoverer.read_transactions(self.isfake, 100)
@@ -86,16 +96,16 @@ class RandomWalk(object):
             self.normal_pos = self.normalize_positions_dict()
             for nodeid in self.gr.nodes():
                 if nodeid not in self.attr['size']:
-                    self.attr['size'][nodeid] = 100
-                    self.attr['color'][nodeid] = (1.0, 0.0, 0.0, 0.3)
+                    self.attr['size'][nodeid] = par_init_size
+                    self.attr['color'][nodeid] = anim_colors['explored_color']
         else:
             self.oldpos = dict(self.normal_pos)
             self.pos = sample_graph.node_positions
             self.normal_pos = self.normalize_positions_dict()
             for nodeid in self.gr.nodes():
                 if nodeid not in self.attr['size']:
-                    self.attr['size'][nodeid] = 100
-                    self.attr['color'][nodeid] = (1.0, 0.0, 0.0, 0.3)
+                    self.attr['size'][nodeid] = par_init_size
+                    self.attr['color'][nodeid] = anim_colors['explored_color']
             self.move_anim()
 
     def move_anim(self):
@@ -265,7 +275,7 @@ class RandomWalk(object):
 
     def remove_old_nodes(self, remove_prob=0.1):
         for node in self.component:
-            if self.attr['size'][node] == 50:
+            if self.attr['size'][node] == par_remove_size:
                 if random.random() < remove_prob:
                     self.local_vision.graph.remove_node(node)
                     print("Node {} is removed from the graph".format(node))
@@ -380,7 +390,7 @@ class RandomWalk(object):
 
     def walk_anim_init(self):
 
-        self.attr['color'][self.local_vision.rootnode] = (0.1, 0.8, 0.1, 0.7)
+        self.attr['color'][self.local_vision.rootnode] = (0.3, 0.8, 0.3, 0.7)
 
         x1s, x2s, y1s, y2s, lws, lcs, lss = [], [], [], [], [], [], []
 
@@ -427,10 +437,10 @@ class RandomWalk(object):
             self.attr['size'][self.current_node] += self.growthrate
         self.apply_function_to_attr('size',
                                     f=lambda x:
-                                    max(50, x-(self.growthrate
-                                               * 0.01
-                                               * random.random()
-                                               - 0.002)))
+                                    max(par_remove_size, x-(self.growthrate
+                                                            * 0.02
+                                                            * random.random()
+                                                            - 0.002)))
         print('minsize', min(list(self.attr['size'].values())))
         self.scat.set_sizes(self.node_sizes)
 
@@ -438,8 +448,8 @@ class RandomWalk(object):
         self.attr['color'][self.next_node] = (0, 1, 0, 1)
         self.attr['color'][self.local_vision.rootnode] = (0, 1, 1, 1)
         for node in self.local_vision.graph.nodes():
-            if self.attr['size'][node] == 50:
-                self.attr['color'][node] = (1, 1, 0, 1)
+            if self.attr['size'][node] == par_remove_size:
+                self.attr['color'][node] = anim_colors['forgotten_color']
 
         self.scat.set_facecolor(self.node_colors)
 

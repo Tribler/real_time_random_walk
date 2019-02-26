@@ -74,7 +74,8 @@ class NodeVision(object):
 
     def add_edge_to_vision(self, n1, n2, w):
         if n1 in self.graph and n2 in self.graph.successors(n1):
-            self.graph[n1][n2]['weight'] += w
+            self.graph[n1][n2]['weight'] *= 0.8
+            self.graph[n1][n2]['weight'] += (0.2 * w)
             print('Existing edge !!!')
         else:
             print('Non-Existing edge !!!')
@@ -161,5 +162,3 @@ class NodeVision(object):
         nx.draw_networkx_edges(self.component, pos=self.node_positions,
                                edge_color='gray', alpha=0.5, style='dashed')
         plt.show()
-
-
