@@ -27,8 +27,8 @@ class NodeVision(object):
         self.pos = self.lay_down_nodes()
         self.component = None
 
-    def set_root_node(self, rootnode):
-        self.root_node = rootnode
+    def set_root_node(self, root_node):
+        self.root_node = root_node
         self.pos = self.lay_down_nodes()
 
     @property
@@ -138,7 +138,7 @@ class NodeVision(object):
     def show_directed_neighborhood(self):
         # nx.draw_networkx_nodes(self.graph, pos=self.pos, node_size=50)
         # nx.draw_networkx_nodes(self.graph, pos=self.pos,
-        #                        nodelist=[self.rootnode],
+        #                        nodelist=[self.root_node],
         #                        node_color='blue', node_size=100)
         # nx.draw_networkx_edges(self.graph, pos=self.pos, edge_color='gray',
         #                        alpha=0.5, style='dashed')

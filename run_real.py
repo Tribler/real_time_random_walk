@@ -51,7 +51,7 @@ if __name__ == '__main__':
 #     # Gw.diminish_weights()
 #     trs = fg.generate_transactions(500)
 #     Gw.add_transactions(trs)
-#     trs = fg.generate_local_transactions(Gw.rootnode, 5, 0.8, True)
+#     trs = fg.generate_local_transactions(Gw.root_node, 5, 0.8, True)
 #     Gw.add_transactions(trs)
 
 #     Gw.normalize_edge_weights()
