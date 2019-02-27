@@ -4,7 +4,7 @@ from NodeVision import NodeVision
 from RandomWalk import RandomWalk
 from TransactionDiscovery import CrawlerTransactionDiscovery, SQLiteTransactionDiscovery
 
-DB_NAME = ""
+DB_NAME = "../../TrustchainDB/trustchain.db"
 
 
 def run_on_real_crawler(local_db=False):
@@ -23,9 +23,12 @@ def run_on_real_crawler(local_db=False):
                           tr['uploader'],
                           weight=tr['amount'])
         if random() < 0.25 and tr['downloader'] != gw.root_node:
-            gw.graph.add_edge(gw.root_node, tr['downloader'], weight=tr['amount'])
+            gw.graph.add_edge(gw.root_node, tr['downloader'],
+                              weight=tr['amount'])
 
-    gw.set_root_node(transactions[0]['downloader'])
+    gw.set_root_node(transactions[0]['uploader'])
+
+    # gw.make_random_transactions(5)
     # Initialization
 
     gw.normalize_edge_weights()
@@ -39,13 +42,13 @@ def run_on_real_crawler(local_db=False):
     rw.set_walk_params({'n_walk': 50, 'reset_prob': 0.1, 'n_step': 300})
     rw.set_move_params({'time_to_finish': 10})
 
-    rw.make_fake_transactions = True
+    # rw.make_fake_transactions = True
 
     rw.show_walk()
 
 
 if __name__ == '__main__':
-    run_on_real_crawler()
+    run_on_real_crawler(True)
 
 # def step(rw):
 #     # Gw.diminish_weights()

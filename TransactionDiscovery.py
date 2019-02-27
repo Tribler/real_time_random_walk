@@ -33,12 +33,13 @@ class GeneratedTransactionDiscovery(TransactionDiscovery):
         self.fg = GraphTransactionGenerator(node_count)
         self.Gw = NodeVision()
         # Add some initial transactions to the graph: 1 % of node count
-        self.Gw.add_transactions(self.fg.generate_transactions(0.01 * node_count))
+        self.Gw.add_transactions(self.fg.generate_transactions(int(0.01 * node_count)))
 
     def read_transactions(self, tr_count=50, local_percentage=1):
         """
         :param tr_count: Number of transaction to read
-        :param local_percentage: Percent of transaction of tr_count from root node (from 0 to 100)
+        :param local_percentage: Percent of 
+               transaction of tr_count from root node (from 0 to 100)
         :return:
         """
         local_txs = local_percentage * tr_count / 100

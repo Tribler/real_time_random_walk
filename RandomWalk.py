@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-from TransactionDiscovery import TransactionDiscovery
-
 anim_colors = {'init_color': (0, 0, 1, 0.3),
                'visited_color:': (0, 1, 0, 0.3),
                'explored_color': (1, 0, 1, 0.3),
@@ -68,7 +66,7 @@ class RandomWalk(object):
             self.remove_old_nodes(par_remove_prob)
 
             # Discover new transactions
-            trs = self.discoverer.read_transactions(100)
+            trs = self.discoverer.read_transactions(10000)
             self.local_vision.add_transactions(trs)
             if self.make_fake_transactions:
                 self.local_vision.make_random_transactions(5)
@@ -191,7 +189,7 @@ class RandomWalk(object):
             self.frame_number = 0
             self.animation._init_func = self.walk_anim_init
             self.animation._func = self.walk_anim_update
-            self.walk_anim_init()            
+            self.walk_anim_init()
             return
 
         for nodeid in self.gr.nodes():
@@ -345,7 +343,7 @@ class RandomWalk(object):
                                     edgecolors=self.node_colors,
                                     facecolors=self.node_colors)
 
-        self.current_node = self.local_vision.rootnode
+        self.current_node = self.local_vision.root_node
         self.growthrate = self.walk_params['growthrate']
         self.n_walk = self.walk_params['n_walk']
         self.n_step = self.walk_params['n_step']
@@ -368,7 +366,7 @@ class RandomWalk(object):
         if (((self.component.out_degree(nodeid) == 0)
              or (np.random.uniform(0, 1) < self.reset_prob))):
 
-            return self.local_vision.rootnode, []
+            return self.local_vision.root_node, []
 
         total_weight = 0
         for neigh in self.component.successors(nodeid):
@@ -382,13 +380,13 @@ class RandomWalk(object):
             total_weight += self.gr[nodeid][neigh]['weight']
             if prob < total_weight:
                 if neigh in visiteds:
-                    return self.local_vision.rootnode, []
+                    return self.local_vision.root_node, []
                 visiteds.append(neigh)
                 return neigh, visiteds
 
     def walk_anim_init(self):
 
-        self.attr['color'][self.local_vision.rootnode] = (0.3, 0.8, 0.3, 0.7)
+        self.attr['color'][self.local_vision.root_node] = (0.3, 0.8, 0.3, 0.7)
 
         x1s, x2s, y1s, y2s, lws, lcs, lss = [], [], [], [], [], [], []
 
@@ -426,12 +424,12 @@ class RandomWalk(object):
         self.next_node, self.visiteds = self.make_step(self.current_node,
                                                        self.visiteds)
 
-        if self.next_node == self.local_vision.rootnode:
+        if self.next_node == self.local_vision.root_node:
             self.n_walk -= 1
             self.n_step = 300
 
         # Update node sizes
-        if self.current_node != self.local_vision.rootnode:
+        if self.current_node != self.local_vision.root_node:
             self.attr['size'][self.current_node] += self.growthrate
         self.apply_function_to_attr('size',
                                     f=lambda x:
@@ -444,7 +442,7 @@ class RandomWalk(object):
 
         # Update node colors
         self.attr['color'][self.next_node] = (0, 1, 0, 1)
-        self.attr['color'][self.local_vision.rootnode] = (0, 1, 1, 1)
+        self.attr['color'][self.local_vision.root_node] = (0, 1, 1, 1)
         for node in self.local_vision.graph.nodes():
             if self.attr['size'][node] == par_remove_size:
                 self.attr['color'][node] = anim_colors['forgotten_color']
