@@ -506,9 +506,9 @@ class RandomWalk(object):
 
         self.current_node = self.next_node
         self.update_footline()
-        # plt.savefig('./foo/foo{}-{}-{}.png'.format(self.n_round,
-        #                                            self.n_walk,
-        #                                            self.n_step))
+        plt.savefig('./foo/foo{}-{}-{}.png'.format(self.n_round,
+                                                   self.n_walk,
+                                                   self.n_step))
 
     def normalize_positions_dict(self, width=0.80, margin=0.05):
         poslist = [v for v in self.pos.values() if v is not None]
