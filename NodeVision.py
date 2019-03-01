@@ -55,7 +55,7 @@ class NodeVision(object):
             neigh = choice(list(self.graph.nodes().keys()))
             if neigh == self.root_node:
                 continue
-            if random() > 0.8:
+            if random() > 0.3:
                 trs.append({'downloader': self.root_node,
                             'uploader': neigh,
                             'amount': random() * 100})

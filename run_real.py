@@ -28,27 +28,27 @@ def run_on_real_crawler(local_db=False):
 
     gw.set_root_node(transactions[0]['uploader'])
 
-    # gw.make_random_transactions(5)
+    gw.make_random_transactions(5)
     # Initialization
 
     gw.normalize_edge_weights()
 
     gw.reposition_nodes()
-    gw.show_undirected_bfs_tree()
+    # gw.show_undirected_bfs_tree()
     gw.update_component()
-    gw.show_directed_neighborhood()
+    # gw.show_directed_neighborhood()
 
     rw = RandomWalk(gw, disc)
     rw.set_walk_params({'n_walk': 50, 'reset_prob': 0.1, 'n_step': 300})
     rw.set_move_params({'time_to_finish': 10})
 
-    # rw.make_fake_transactions = True
+    rw.make_fake_transactions = True
 
     rw.show_walk()
 
 
 if __name__ == '__main__':
-    run_on_real_crawler(True)
+    run_on_real_crawler()
 
 # def step(rw):
 #     # Gw.diminish_weights()

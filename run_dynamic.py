@@ -11,7 +11,7 @@ def run_on_generated_data():
 
     # Init graph with root 0
     Gw = NodeVision()
-    Gw.add_transactions(fg.generate_transactions(500))
+    Gw.add_transactions(fg.generate_transactions(50))
     Gw.add_transactions(fg.generate_local_transactions(Gw.root_node, 5))
     Gw.normalize_edge_weights()
     Gw.reposition_nodes()
@@ -25,6 +25,7 @@ def run_on_generated_data():
     rw = RandomWalk(Gw, discoverer)
     rw.set_walk_params({'n_walk': 10, 'reset_prob': 0.1, 'n_step': 300})
     rw.set_move_params({'time_to_finish': 10})
+    rw.num_tr_at_each_round = 30
 
     rw.show_walk()
 

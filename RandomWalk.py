@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-anim_colors = {'init_color': (0, 0, 1, 0.3),
+anim_colors = {'init_color': (1, 0, 0, 0.3),
                'visited_color:': (0, 1, 0, 0.3),
-               'explored_color': (1, 0, 1, 0.3),
+               'explored_color': (1, 0, 0, 0.3),
                'forgotten_color': (0.3, 0.3, 0.3, 0.5)}
 
 par_remove_size = 30
@@ -36,11 +36,16 @@ class RandomWalk(object):
         self.ax = None
         self.walk_params = self.default_walk_params()
         self.move_params = self.default_move_params()
+        self.n_walk = self.walk_params['n_walk']
+        self.n_step = self.walk_params['n_step']
+        self.n_round = 0
         self.edge_indices = {}
         self.oldpos = None
         self.fig = None
         self.discoverer = discoverer
         self.make_fake_transactions = False
+        self.num_tr_at_each_round = 100
+        self.footline = ""
 
     @property
     def gr(self):
@@ -60,13 +65,33 @@ class RandomWalk(object):
         return [self.attr['color'][nodeid]
                 for nodeid in self.component.nodes()]
 
+    def update_footline(self):
+        for txt in self.ax.texts:
+            txt.set_visible(False)
+
+        footline = ("Round: {}  "
+                    "Walk: {}  "
+                    "Step: {}                "
+                    "Number of nodes in the local vision: "
+                    "{}". format(self.n_round,
+                                 self.walk_params['n_walk']
+                                 - self.n_walk,
+                                 self.walk_params['n_step']
+                                 - self.n_step,
+                                 self.component.number_of_nodes()))
+        # self.ax.text(0, 0, "N Round= {}".format(self.n_round))
+        # self.ax.text(0.1, 0, "N Step= {}".format())
+        # self.ax.text(0.2, 0, "N Walk= {}".format(self.walk_params['n_walk']
+        #                                          - self.n_walk))
+        self.ax.text(0.1, 0, footline)
+
     def animation_controller(self, status):
         if status == 'walkfinished':
             # Remove old nodes with some probability
             self.remove_old_nodes(par_remove_prob)
 
             # Discover new transactions
-            trs = self.discoverer.read_transactions(10000)
+            trs = self.discoverer.read_transactions(self.num_tr_at_each_round)
             self.local_vision.add_transactions(trs)
             if self.make_fake_transactions:
                 self.local_vision.make_random_transactions(5)
@@ -108,7 +133,7 @@ class RandomWalk(object):
         self.prepare_canvas()
 
         self.animation = FuncAnimation(self.fig, self.move_anim_update,
-                                       interval=10,
+                                       interval=1,
                                        init_func=self.move_anim_init)
         plt.show()
 
@@ -117,6 +142,7 @@ class RandomWalk(object):
         self.ax.cla()
         self.ax.set_xlim(0, 1), self.ax.set_xticks([])
         self.ax.set_ylim(0, 1), self.ax.set_yticks([])
+        self.ax.text(0.1, 0.8, "Retrieving Data")
         frame_number = 0
         self.frame_number = 0
         actual_pos = {}
@@ -290,9 +316,10 @@ class RandomWalk(object):
         self.ax = self.fig.add_axes([0.025, 0.1, 1, 1], frameon=False)
         self.ax.set_xlim(0, 1), self.ax.set_xticks([])
         self.ax.set_ylim(0, 1), self.ax.set_yticks([])
-        # self.ax2 = self.fig.add_axes([0.6, 0.05, 0.09, 0.05])
+        # self.ax2 = self.fig.add_axes([0.0, 0.025, 1, 1])
         # self.ax3 = self.fig.add_axes([0.72, 0.05, 0.09, 0.05])
-        
+        # self.ax2.set_ylim(0, 1), self.ax.set_yticks([])
+        self.footline = self.ax.text(0, 0, self.footline)
         # bprev = Button(self.ax2, 'Interrupt Walk')
         # tprev = Button(self.ax3, 'T')
         # bprev.on_clicked(self.test)
@@ -352,7 +379,7 @@ class RandomWalk(object):
         self.edge_indices = {}
 
         self.animation = FuncAnimation(self.fig, self.walk_anim_update,
-                                       interval=100,
+                                       interval=10,
                                        init_func=self.walk_anim_init)
 
         if savevid:
@@ -385,8 +412,9 @@ class RandomWalk(object):
                 return neigh, visiteds
 
     def walk_anim_init(self):
-
+        self.n_round += 1
         self.attr['color'][self.local_vision.root_node] = (0.3, 0.8, 0.3, 0.7)
+        self.attr['size'][self.local_vision.root_node] = 50
 
         x1s, x2s, y1s, y2s, lws, lcs, lss = [], [], [], [], [], [], []
 
@@ -414,7 +442,6 @@ class RandomWalk(object):
 
     def walk_anim_update(self, frame_number):
         # self.current_index = frame_number % self.n_nodes
-
         print('Walk', self.n_walk)
         if self.n_walk < 1:
             # self.animation.event_source.stop()
@@ -431,6 +458,7 @@ class RandomWalk(object):
         # Update node sizes
         if self.current_node != self.local_vision.root_node:
             self.attr['size'][self.current_node] += self.growthrate
+        self.attr['size'][self.local_vision.root_node] = 50
         self.apply_function_to_attr('size',
                                     f=lambda x:
                                     max(par_remove_size, x-(self.growthrate
@@ -477,6 +505,10 @@ class RandomWalk(object):
             # print('... Finished')
 
         self.current_node = self.next_node
+        self.update_footline()
+        plt.savefig('./foo/foo{}-{}-{}.png'.format(self.n_round,
+                                                   self.n_walk,
+                                                   self.n_step))
 
     def normalize_positions_dict(self, width=0.80, margin=0.05):
         poslist = [v for v in self.pos.values() if v is not None]
