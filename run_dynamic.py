@@ -15,9 +15,9 @@ def run_on_generated_data():
     Gw.add_transactions(fg.generate_local_transactions(Gw.root_node, 5))
     Gw.normalize_edge_weights()
     Gw.reposition_nodes()
-    Gw.show_undirected_bfs_tree()
+    # Gw.show_undirected_bfs_tree()
     Gw.update_component()
-    Gw.show_directed_neighborhood()
+    # Gw.show_directed_neighborhood()
 
     # Use default fake transaction discovery
     discoverer = GeneratedTransactionDiscovery()
